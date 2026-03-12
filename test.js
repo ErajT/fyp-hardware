@@ -2,7 +2,7 @@ const axios = require('axios');
 
 const testAddData = async () => {
   try {
-    const response = await axios.post('http://localhost:2000/addData', {
+    const response = await axios.post('https://fyp-hardware.vercel.app/addData', {
       co2_emitted: 15.3
     });
 
