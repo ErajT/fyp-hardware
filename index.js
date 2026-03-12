@@ -1,9 +1,10 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const query = require("./query");
 
 let app = express();
-app.options('*', cors()); // Allow preflight requests
+
 
 // Middleware to enable CORS
 app.use((req, res, next) => {
@@ -25,8 +26,32 @@ app.use(bodyParser.json({ limit: '200mb' }));
 app.use(bodyParser.urlencoded({ limit: '200mb', extended: true }));
 app.use(express.json());
 
-// Mount routers
-app.use('/users', function);
+// POST route to add CO2 log
+app.post('/addData', async (req, res) => {
+  try {
+    const { co2_emitted } = req.body;
+
+    if (co2_emitted === undefined) {
+      return res.status(400).json({ error: 'co2_emitted is required' });
+    }
+
+    const sql = `
+      INSERT INTO hardware_logs (datetime, co2_emitted)
+      VALUES (NOW(), ?)
+    `;
+
+    const result = await query.queryExecute(sql, [co2_emitted]);
+
+    res.status(201).json({
+      message: 'Log added successfully',
+      log: { log_id: result.insertId, datetime: new Date(), co2_emitted }
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 
 // Start server
 app.listen(2000, () => {

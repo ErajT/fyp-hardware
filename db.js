@@ -1,15 +1,17 @@
 const mysql = require('mysql');
-//Database Connection
+require('dotenv').config();
 
-const connection=mysql.createPool({
-    connectionLimit: 6,
-    host: "Climavert12.mysql.database.azure.com",
-    user: "Climavert_12",
-    password: "Tazeen12",
-    database: "cognify",
-    port: 3306,
-    ssl: true
-})
+const connection = mysql.createPool({
+    connectionLimit: parseInt(process.env.DB_CONNECTION_LIMIT),
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    port: parseInt(process.env.DB_PORT),
+    ssl: process.env.DB_SSL === 'true'
+});
+
+
 connection.getConnection((err,connection)=>{
     if (err){
         return console.log(err);
