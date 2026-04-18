@@ -3,6 +3,8 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const query = require("./query");
 
+const IndividualRouter = require("./Router/IndividualRouter");
+
 let app = express();
 
 
@@ -52,6 +54,21 @@ app.post('/addData', async (req, res) => {
   }
 });
 
+
+// app.use(cors({
+//   origin: ['http://localhost:5173', 'https://learn-lime-three.vercel.app'],
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+//   credentials: true // Allow credentials (cookies) to be included with requests
+// }));
+
+
+const corsOptions = {
+  origin: ['http://localhost:5173', 'https://learn-lime-three.vercel.app'], 
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'], // Allowed methods
+  credentials: true // Allow credentials
+};
+
+app.use("/individual", IndividualRouter);
 
 // Start server
 app.listen(2000, () => {
