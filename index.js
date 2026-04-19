@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const query = require("./query");
-
+const userRouter = require('./api/users/user.router');
 const IndividualRouter = require("./Router/IndividualRouter");
 
 let app = express();
@@ -68,6 +68,7 @@ const corsOptions = {
   credentials: true // Allow credentials
 };
 
+app.use('/users', userRouter)
 app.use("/individual", IndividualRouter);
 
 // Start server
