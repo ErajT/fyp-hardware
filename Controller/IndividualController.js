@@ -240,6 +240,87 @@ exports.viewMarketplace = async (req, res) => {
   }
 };
 
+exports.createSellOrderIndividual = async (req, res) => {
+  try {
+    const { bill_id, token_id, amount, price } = req.body;
+
+    if (!bill_id || !token_id || !amount || !price) {
+      return res.status(400).json({
+        status: "fail",
+        message: "bill_id, token_id, amount, price required"
+      });
+    }
+
+    /* -------- STEP 1: GET USER_ID FROM BILL -------- */
+    const billResult = await Qexecution.queryExecute(
+      `SELECT user_id FROM electricity_bills WHERE bill_id = ?`,
+      [bill_id]
+    );
+
+    const billRows = billResult.rows || billResult || [];
+
+    if (!billRows.length) {
+      return res.status(404).json({
+        status: "fail",
+        message: "Bill not found"
+      });
+    }
+
+    const user_id = billRows[0].user_id;
+
+    /* -------- STEP 2: CHECK TOKEN BALANCE -------- */
+    const balanceResult = await Qexecution.queryExecute(
+      `
+      SELECT 
+        COALESCE(SUM(
+          CASE 
+            WHEN tx_type = 'minted' THEN amount
+            WHEN tx_type = 'sold' AND buyer_id = ? THEN amount
+            WHEN tx_type = 'sold' AND seller_id = ? THEN -amount
+            WHEN tx_type = 'burnt' THEN -amount
+            ELSE 0
+          END
+        ), 0) AS owned_tokens
+      FROM token_transactions
+      WHERE token_id = ?
+      `,
+      [user_id, user_id, user_id, user_id, token_id]
+    );
+
+    const balanceRows = balanceResult.rows || balanceResult || [];
+    const owned = balanceRows[0]?.owned_tokens || 0;
+
+    if (owned < amount) {
+      return res.status(400).json({
+        status: "fail",
+        message: "Insufficient token balance"
+      });
+    }
+
+    /* -------- STEP 3: CREATE MARKETPLACE LISTING -------- */
+    await Qexecution.queryExecute(
+      `
+      INSERT INTO marketplace
+      (user_id, bill_id, token_id, order_type, amount, price, status, created_at)
+      VALUES (?, ?, ?, 'sell', ?, ?, 'open', NOW())
+      `,
+      [user_id, bill_id, token_id, amount, price]
+    );
+
+    res.json({
+      status: "success",
+      message: "Sell order created successfully (Individual)"
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      status: "fail",
+      message: "Error creating sell order"
+    });
+  }
+};
+
 /* =========================================
    GenAI (OpenRouter)
 ========================================= */
