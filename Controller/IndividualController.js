@@ -224,7 +224,7 @@ exports.viewMarketplace = async (req, res) => {
        JOIN tokens t ON m.token_id = t.token_id
        JOIN projects p ON t.project_id = p.project_id
        JOIN registrations u ON t.owner_user_id = u.registration_id
-       WHERE m.status = 'active'`
+       WHERE m.status = 'open'`
     );
 
     res.json({
