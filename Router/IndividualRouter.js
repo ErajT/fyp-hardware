@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const individualController = require("../Controllers/IndividualController");
+const individualController = require("../Controller/IndividualController");
 
 router.route('/analyze-bill')
   .post(individualController.uploadBill, individualController.analyzeElectricityBill);

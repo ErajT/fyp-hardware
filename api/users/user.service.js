@@ -166,8 +166,8 @@
 
 
 
-const pool = require('./../../config/database');
-const Qexecution = require('./../../Controllers/query');
+const pool = require('../../config/database');
+const Qexecution = require('../../Controller/query');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 

@@ -3,7 +3,7 @@ const { genSaltSync, hashSync, compareSync } = require('bcrypt');
 const { sign, verify } = require('jsonwebtoken');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
-const Qexecution = require("./../../Controllers/query");
+const Qexecution = require("../../Controller/query");
 
 module.exports = {
 
