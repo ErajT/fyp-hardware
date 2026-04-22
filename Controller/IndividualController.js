@@ -155,7 +155,7 @@ exports.calculateCarbonOffset = async (req, res) => {
     }
 
     // ✅ FIXED: Proper destructuring for mysql2 promise API
-    const [rows] = await Qexecution.queryExecute(
+    const rows = await Qexecution.queryExecute(
       `SELECT unit_used FROM electricity_bills WHERE bill_id = ?`,
       [bill_id]
     );
@@ -175,7 +175,7 @@ exports.calculateCarbonOffset = async (req, res) => {
     const credits_required = Math.ceil(co2_emitted);
 
     // ✅ FIXED: Consistent status value — using 'open' everywhere
-    const [listings] = await Qexecution.queryExecute(
+    const listings = await Qexecution.queryExecute(
       `SELECT 
         m.order_id AS listing_id,
         t.amount,
