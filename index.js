@@ -122,7 +122,6 @@ app.post('/getCarbonPrice', async (req, res) => {
   }
 });
 
-
 // app.use(cors({
 //   origin: ['http://localhost:5173', 'https://learn-lime-three.vercel.app'],
 //   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
