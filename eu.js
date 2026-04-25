@@ -2,7 +2,7 @@ const axios = require('axios');
 
 const testCarbonPrice = async () => {
   try {
-    const response = await axios.post('http://localhost:2000/getCarbonPrice');
+    const response = await axios.post('https://fyp-hardware.vercel.app/getCarbonPrice');
 
     console.log("Response from /getCarbonPrice:");
     console.log(response.data);
