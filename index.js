@@ -63,7 +63,7 @@ app.post('/addData', async (req, res) => {
 
 
 const corsOptions = {
-  origin: ['http://localhost:5173', 'https://learn-lime-three.vercel.app'], 
+  origin: ['http://localhost:5173', 'https://learn-lime-three.vercel.app', '*'], 
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'], // Allowed methods
   credentials: true // Allow credentials
 };
