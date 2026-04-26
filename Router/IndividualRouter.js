@@ -15,4 +15,7 @@ router.route('/marketplace')
 router.route('/marketplace/sell')
   .post(individualController.createSellOrderIndividual)
 
+router.route('/summary/:user_id')
+  .get(individualController.getIndividualSummary);
+  
 module.exports = router;

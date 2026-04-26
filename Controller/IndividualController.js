@@ -348,6 +348,108 @@ exports.createSellOrderIndividual = async (req, res) => {
   }
 };
 
+// Get Individual Carbon Summary
+exports.getIndividualSummary = async (req, res) => {
+  try {
+    const { user_id } = req.params;
+
+    if (!user_id) {
+      return res.status(400).json({
+        status: "fail",
+        message: "user_id is required"
+      });
+    }
+
+    /* -----------------------------
+       1. TOTAL CO2 EMITTED
+    ----------------------------- */
+    const emissionResult = await Qexecution.queryExecute(
+      `SELECT 
+         COALESCE(SUM(co2_released), 0) AS total_emitted
+       FROM electricity_bills
+       WHERE user_id = ?`,
+      [user_id]
+    );
+
+    const totalEmitted = emissionResult[0]?.total_emitted || 0;
+
+    /* -----------------------------
+       2. TOTAL CREDITS EARNED
+    ----------------------------- */
+    // Assuming 1 credit = 1 ton CO2 saved
+    // Only approved bills count
+    const creditResult = await Qexecution.queryExecute(
+      `SELECT 
+         COALESCE(SUM(co2_released), 0) AS credits_earned
+       FROM electricity_bills
+       WHERE user_id = ?
+       AND eligible_for_credit = 1
+       AND admin_approval_status = 'approved'`,
+      [user_id]
+    );
+
+    const creditsEarned = creditResult[0]?.credits_earned || 0;
+
+    /* -----------------------------
+       3. TOKENS OWNED (OPTIONAL - STRONG FEATURE)
+    ----------------------------- */
+    const tokenResult = await Qexecution.queryExecute(
+      `SELECT 
+        COALESCE(SUM(
+          CASE 
+            WHEN tx_type = 'minted' THEN amount
+            WHEN tx_type = 'sold' AND buyer_id = ? THEN amount
+            WHEN tx_type = 'sold' AND seller_id = ? THEN -amount
+            WHEN tx_type = 'burnt' THEN -amount
+            ELSE 0
+          END
+        ), 0) AS token_balance
+      FROM token_transactions`,
+      [user_id, user_id]
+    );
+
+    const tokenBalance = tokenResult[0]?.token_balance || 0;
+
+    /* -----------------------------
+       4. NET BALANCE
+    ----------------------------- */
+    const netBalance = creditsEarned - totalEmitted;
+
+    /* -----------------------------
+       5. ACTION
+    ----------------------------- */
+    let action = "NO_ACTION";
+
+    if (netBalance < 0) {
+      action = "BUY_CREDITS";
+    } else if (netBalance > 0) {
+      action = "SELL_CREDITS";
+    }
+
+    /* -----------------------------
+       RESPONSE
+    ----------------------------- */
+    res.json({
+      status: "success",
+      user_id,
+      summary: {
+        total_co2_emitted: Number(totalEmitted.toFixed(4)),
+        credits_earned: Number(creditsEarned.toFixed(4)),
+        token_balance: tokenBalance,
+        net_balance: Number(netBalance.toFixed(4)),
+        action
+      }
+    });
+
+  } catch (err) {
+    console.error("getIndividualSummary error:", err);
+    res.status(500).json({
+      status: "fail",
+      message: "Error fetching individual summary"
+    });
+  }
+};
+
 /* =========================================
    GenAI Bill Interpretation (OpenRouter)
 ========================================= */
