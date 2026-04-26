@@ -3,7 +3,8 @@ const axios = require('axios');
 const testAddData = async () => {
   try {
     const response = await axios.post('https://fyp-hardware.vercel.app/addData', {
-      co2_emitted: 15.3
+      co2_emitted: 15.3,
+      industry_id: 1
     });
 
     console.log("Response from /addData:");
