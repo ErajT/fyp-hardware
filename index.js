@@ -31,18 +31,18 @@ app.use(express.json());
 // POST route to add CO2 log
 app.post('/addData', async (req, res) => {
   try {
-    const { co2_emitted } = req.body;
+    const { co2_emitted, industry_id } = req.body;
 
-    if (co2_emitted === undefined) {
+    if (co2_emitted === undefined || industry_id == undefined) {
       return res.status(400).json({ error: 'co2_emitted is required' });
     }
 
     const sql = `
-      INSERT INTO hardware_logs (datetime, co2_emitted)
-      VALUES (NOW(), ?)
+      INSERT INTO hardware_logs (datetime, co2_emitted, industry_id)
+      VALUES (NOW(), ?, ?)
     `;
 
-    const result = await query.queryExecute(sql, [co2_emitted]);
+    const result = await query.queryExecute(sql, [co2_emitted,industry_id]);
 
     res.status(201).json({
       message: 'Log added successfully',
