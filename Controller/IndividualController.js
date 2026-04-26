@@ -352,7 +352,7 @@ exports.createSellOrderIndividual = async (req, res) => {
 async function interpretBillWithAI(text) {
   try {
     // ✅ FIXED: Use environment variable — set this in Vercel dashboard
-    const apiKey = process.env.OPENROUTER_API_KEY;
+    const apiKey = "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";
 
     if (!apiKey) {
       console.warn("OPENROUTER_API_KEY not set — skipping AI fallback");
