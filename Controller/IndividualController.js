@@ -275,12 +275,14 @@ exports.createSellOrderIndividual = async (req, res) => {
     /* -------- STEP 1: GET USER_ID FROM BILL -------- */
 
     // ✅ FIXED: Proper destructuring — no more .rows which doesn't exist
-    const [billRows] = await Qexecution.queryExecute(
+    const billResult = await Qexecution.queryExecute(
       `SELECT user_id FROM electricity_bills WHERE bill_id = ?`,
       [bill_id]
     );
 
-    if (!billRows || billRows.length === 0) {
+    const billRows = billResult.rows || billResult || [];
+
+    if (!billRows.length === 0) {
       return res.status(404).json({
         status: "fail",
         message: "Bill not found"
@@ -297,7 +299,7 @@ exports.createSellOrderIndividual = async (req, res) => {
     //   seller_id = ?  → user_id  (sold and user is buyer)
     //   seller_id = ?  → user_id  (sold and user is seller)
     //   token_id = ?   → token_id
-    const [balanceRows] = await Qexecution.queryExecute(
+    const balanceResult = await Qexecution.queryExecute(
       `SELECT 
         COALESCE(SUM(
           CASE 
@@ -310,9 +312,10 @@ exports.createSellOrderIndividual = async (req, res) => {
         ), 0) AS owned_tokens
       FROM token_transactions
       WHERE token_id = ?`,
-      [user_id, user_id, token_id]
+      [user_id, user_id, user_id, user_id, token_id]
     );
 
+    const balanceRows = balanceResult.rows || balanceResult || [];
     const owned = Number(balanceRows?.[0]?.owned_tokens || 0);
 
     if (owned < Number(amount)) {
