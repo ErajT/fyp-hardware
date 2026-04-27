@@ -3,8 +3,8 @@ const multer = require("multer");
 const fs = require("fs");
 const axios = require("axios");
 const Qexecution = require("./query");
-const { buildTxData, enc } = require("../Blockchain/contractService");
-const { marketplace } = enc;
+// const { buildTxData, enc } = require("../Blockchain/contractService");
+// const { marketplace } = enc;
 
 const upload = multer({ dest: "uploads/" });
 
@@ -701,19 +701,19 @@ ${text}
 ========================================= */
 
 // ── Blockchain: Get tx data for buyListing(listingId) ────────────────────────
-exports.getBuyListingTx = async (req, res) => {
-  try {
-    const { listing_id } = req.body;
-    if (!listing_id) {
-      return res.status(400).json({ status: "fail", message: "listing_id required" });
-    }
-    const txData = await buildTxData(marketplace, "buyListing", [listing_id]);
-    res.json({ status: "success", txData });
-  } catch (err) {
-    console.error("getBuyListingTx error:", err.message);
-    res.status(500).json({ status: "fail", message: err.message });
-  }
-};
+// exports.getBuyListingTx = async (req, res) => {
+//   try {
+//     const { listing_id } = req.body;
+//     if (!listing_id) {
+//       return res.status(400).json({ status: "fail", message: "listing_id required" });
+//     }
+//     const txData = await buildTxData(marketplace, "buyListing", [listing_id]);
+//     res.json({ status: "success", txData });
+//   } catch (err) {
+//     console.error("getBuyListingTx error:", err.message);
+//     res.status(500).json({ status: "fail", message: err.message });
+//   }
+// };
 
 function clean(text) {
   return text
