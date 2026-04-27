@@ -413,6 +413,7 @@ exports.calculateCarbonOffset = async (req, res) => {
     });
   }
 };
+
 /* =========================================
    View Marketplace Listings
 ========================================= */
