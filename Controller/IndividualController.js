@@ -485,12 +485,13 @@ exports.getTokensByBill = async (req, res) => {
 
 exports.createSellOrderIndividual = async (req, res) => {
   try {
-    const { bill_id, token_id, amount, price } = req.body;
+    const { user_id } = req.params;
+    const { amount, price } = req.body;
 
-    if (!bill_id || !token_id || !amount || !price) {
+    if (!user_id || !amount || !price) {
       return res.status(400).json({
         status: "fail",
-        message: "bill_id, token_id, amount, price required"
+        message: "user_id, amount, price required"
       });
     }
 
@@ -501,24 +502,9 @@ exports.createSellOrderIndividual = async (req, res) => {
       });
     }
 
-    // Validate ownership
-    const tokenCheck = await Qexecution.queryExecute(
-      `SELECT owner_user_id, amount FROM tokens WHERE token_id = ?`,
-      [token_id]
-    );
-
-    const tokenRow = tokenCheck[0];
-
-    if (!tokenRow) {
-      return res.status(404).json({
-        status: "fail",
-        message: "Token not found"
-      });
-    }
-
-    const user_id = tokenRow.owner_user_id;
-
-    // Balance check
+    /* =========================
+       1. TOTAL TOKEN BALANCE
+    ========================= */
     const balanceResult = await Qexecution.queryExecute(
       `SELECT 
         COALESCE(SUM(
@@ -530,27 +516,31 @@ exports.createSellOrderIndividual = async (req, res) => {
             ELSE 0
           END
         ), 0) AS balance
-      FROM token_transactions
-      WHERE token_id = ?`,
-      [user_id, user_id, token_id]
+      FROM token_transactions`,
+      [user_id, user_id]
     );
 
-    const balance = Number(balanceResult[0]?.balance || 0);
+    const rows = balanceResult.rows || balanceResult || [];
+    const balance = Number(rows[0]?.balance || 0);
 
-    // 1. Get already listed tokens
+    /* =========================
+       2. ALREADY LISTED TOKENS
+    ========================= */
     const listedResult = await Qexecution.queryExecute(
       `SELECT COALESCE(SUM(amount), 0) AS listed
-        FROM marketplace
-        WHERE token_id = ? AND status = 'open'`,
-      [token_id]
+       FROM marketplace
+       WHERE user_id = ? AND status = 'open'`,
+      [user_id]
     );
 
-    const listed = Number(listedResult[0]?.listed || 0);
+    const listedRows = listedResult.rows || listedResult || [];
+    const listed = Number(listedRows[0]?.listed || 0);
 
-    // 2. Calculate available tokens
+    /* =========================
+       3. AVAILABLE TOKENS
+    ========================= */
     const available = balance - listed;
 
-    // 3. Validate against available tokens
     if (available < amount) {
       return res.status(400).json({
         status: "fail",
@@ -558,29 +548,28 @@ exports.createSellOrderIndividual = async (req, res) => {
       });
     }
 
-    if (balance < amount) {
-      return res.status(400).json({
-        status: "fail",
-        message: `Insufficient tokens. Available: ${balance}`
-      });
-    }
-
-    // Create listing
+    /* =========================
+       4. CREATE SELL ORDER
+    ========================= */
     await Qexecution.queryExecute(
       `INSERT INTO marketplace
-      (user_id, bill_id, token_id, order_type, amount, price, status, created_at)
-      VALUES (?, ?, ?, 'sell', ?, ?, 'open', NOW())`,
-      [user_id, bill_id, token_id, amount, price]
+      (user_id, order_type, amount, price, status, created_at)
+      VALUES (?, 'sell', ?, ?, 'open', NOW())`,
+      [user_id, amount, price]
     );
 
     res.json({
       status: "success",
       message: "Sell order created",
-      details: { amount, price }
+      details: {
+        amount,
+        price,
+        available_after: available - amount
+      }
     });
 
   } catch (err) {
-    console.error(err);
+    console.error("createSellOrderIndividual error:", err);
     res.status(500).json({
       status: "fail",
       message: "Error creating sell order"
