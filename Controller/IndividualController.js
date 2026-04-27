@@ -447,35 +447,46 @@ exports.viewMarketplace = async (req, res) => {
   }
 };
 
-exports.getTokensByBill = async (req, res) => {
+exports.getTokensByUser = async (req, res) => {
   try {
-    const { bill_id } = req.params;
+    const { user_id } = req.params;
 
-    if (!bill_id) {
+    if (!user_id) {
       return res.status(400).json({
         status: "fail",
-        message: "bill_id required"
+        message: "user_id required"
       });
     }
 
-    const tokens = await Qexecution.queryExecute(
+    /* =========================
+       1. FETCH USER TOKENS
+    ========================= */
+    const result = await Qexecution.queryExecute(
       `SELECT token_id, amount 
        FROM tokens 
-       WHERE bill_id = ?`,
-      [bill_id]
+       WHERE owner_user_id = ?`,
+      [user_id]
     );
 
-    const rows = tokens.rows || tokens || [];
+    const rows = result.rows || result || [];
+
+    /* =========================
+       2. TOTAL TOKENS
+    ========================= */
+    const total_tokens = rows.reduce(
+      (sum, t) => sum + Number(t.amount || 0),
+      0
+    );
 
     res.json({
       status: "success",
-      bill_id,
-      tokens: rows.length ? rows : [],
-      total_tokens: rows.reduce((sum, t) => sum + Number(t.amount), 0)
+      user_id,
+      tokens: rows,
+      total_tokens
     });
 
   } catch (err) {
-    console.error(err);
+    console.error("getTokensByUser error:", err);
     res.status(500).json({
       status: "fail",
       message: "Error fetching tokens"

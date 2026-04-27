@@ -22,7 +22,7 @@ router.route('/marketplace/sell/:user_id')
 router.route('/summary/:user_id')
   .get(individualController.getIndividualSummary);
 
-router.route('/bill/:bill_id/tokens')
-  .get(individualController.getTokensByBill);
+router.route('/bill/:user_id/tokens')
+  .get(individualController.getTokensByUser);
 
 module.exports = router;
