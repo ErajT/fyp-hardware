@@ -6,7 +6,9 @@ const Qexecution = require("./query");
 // const { buildTxData, enc } = require("../Blockchain/contractService");
 // const { marketplace } = enc;
 
-const upload = multer({ dest: "uploads/" });
+// const upload = multer({ dest: "uploads/" });
+
+const upload = multer({ storage: multer.memoryStorage() });
 
 exports.uploadBill = upload.single("bill");
 
@@ -681,7 +683,7 @@ ${text}
     },
     {
       headers: {
-        "Authorization": "Bearer YOUR_API_KEY",
+        "Authorization": "Bearer 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",
         "Content-Type": "application/json"
       }
     }
