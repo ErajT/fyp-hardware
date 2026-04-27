@@ -16,7 +16,7 @@ router.route('/marketplace')
 // router.route('/blockchain/buy')
 //   .post(individualController.getBuyListingTx);
 
-router.route('/marketplace/sell')
+router.route('/marketplace/sell/:user_id')
   .post(individualController.createSellOrderIndividual)
 
 router.route('/summary/:user_id')
